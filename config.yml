@@ -1,0 +1,16 @@
+server:
+  host: "0.0.0.0"
+  port: "8000"
+
+database:
+  db: "postgresql"
+  user: "user"
+  password: "user"
+  host: "postgres-1"
+  port: "5432"
+  dbName: "people_db"
+
+Enrichment:
+  ageUrl: "https://api.agify.io"
+  genderUrl: "https://api.genderize.io"
+  nationalityUrl: "https://api.nationalize.io"

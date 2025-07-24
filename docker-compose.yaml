@@ -1,0 +1,28 @@
+services:
+  postgres:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: people_db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: user
+    ports:
+      - "5432:5432"
+  people:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    environment:
+      DB_URL: "postgresql://user:user@postgres:5432/people_db"
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres
+    links:
+      - postgres
+    networks:
+      - default
+    restart: on-failure:5
+
+networks:
+  net:
+    driver: bridge
