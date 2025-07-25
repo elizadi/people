@@ -74,14 +74,19 @@ func (e *Enrichment) Nationality(name string) (string, error) {
 	url := e.NationalityUrl + types.NameParam + name
 	body, err := e.httpGet(url)
 	if err != nil {
-		e.Logger.WithError(err).Errorln("Error getting gender by request")
+		e.Logger.WithError(err).Errorln("Error getting nationality by request")
 		return "", err
 	}
 
 	err = json.Unmarshal(body, &nationality)
 	if err != nil {
-		e.Logger.WithError(err).Errorln("Error unmarshal gender response body")
+		e.Logger.WithError(err).Errorln("Error unmarshal nationality response body")
 		return "", err
+	}
+
+	if len(nationality.Country) == 0 {
+		e.Logger.WithError(types.ErrNotFound).Errorln("Error getting nationality")
+		return "", types.ErrNotFound
 	}
 
 	return nationality.Country[0].ID, nil

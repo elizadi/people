@@ -92,6 +92,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/types.ErrorResponse"
                         }
                     },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/types.ErrorResponse"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -103,7 +109,7 @@ const docTemplate = `{
         },
         "/api/v1/users/:id": {
             "get": {
-                "description": "Get user information with emails by id",
+                "description": "Get user information with emails by second name",
                 "produces": [
                     "application/json"
                 ],
@@ -124,13 +130,10 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/types.UserInfo"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/types.ErrorResponse"
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/types.UserInfo"
+                            }
                         }
                     },
                     "404": {

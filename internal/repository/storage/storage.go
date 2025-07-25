@@ -131,40 +131,59 @@ func (s *Storage) GetAllUsersInfo(ctx context.Context) ([]types.UserInfo, error)
 	return users, nil
 }
 
-func (s *Storage) GetUserInfoByID(ctx context.Context, id uint64) (types.UserInfo, error) {
+func (s *Storage) GetUserInfoBySecondName(ctx context.Context, name string) ([]types.UserInfo, error) {
 	connection, err := s.pool.Acquire(ctx)
 	if err != nil {
 		s.logger.WithError(err).Errorln("Error whole acquiring connection from the database pool!")
-		return types.UserInfo{}, err
+		return []types.UserInfo{}, err
 	}
 
 	defer connection.Release()
 
-	var user types.UserInfo
-
-	err = connection.QueryRow(ctx, GetUserAllInfoTemplate, id).Scan(
-		&user.ID,
-		&user.FirstName,
-		&user.LastName,
-		&user.Gender,
-		&user.Age,
-		&user.Nationality,
-		&user.Emails,
-	)
+	rows, err := connection.Query(ctx, GetUserAllInfoTemplate, name)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			s.logger.WithError(err).Errorln("No such row in Users")
-			return types.UserInfo{}, types.ErrNotFound
+			return []types.UserInfo{}, types.ErrNotFound
 		}
 		s.logger.WithError(err).Errorln("Error getting user info")
-		return types.UserInfo{}, err
+		return []types.UserInfo{}, err
 	}
 
-	return user, nil
+	var users []types.UserInfo
+	var errs []error
+
+	for rows.Next() {
+		var user types.UserInfo
+		err = rows.Scan(
+			&user.ID,
+			&user.FirstName,
+			&user.LastName,
+			&user.Gender,
+			&user.Age,
+			&user.Nationality,
+			&user.Emails,
+		)
+
+		if err != nil {
+			s.logger.WithError(err).Errorln("Error getting user info")
+			errs = append(errs, err)
+		}
+
+		users = append(users, user)
+	}
+
+	err = errors.Join(errs...)
+	if err != nil {
+		s.logger.WithError(err).Errorln("Error getting all users info")
+		return []types.UserInfo{}, err
+	}
+
+	return users, nil
 }
 
-func (s *Storage) GetAllUserEmails(ctx context.Context, id uint64) ([]types.Email, error) {
+func (s *Storage) GetUserEmails(ctx context.Context, id uint64) ([]types.Email, error) {
 	connection, err := s.pool.Acquire(ctx)
 	if err != nil {
 		s.logger.WithError(err).Errorln("Error whole acquiring connection from the database pool!")
@@ -190,6 +209,7 @@ func (s *Storage) GetAllUserEmails(ctx context.Context, id uint64) ([]types.Emai
 		var email types.Email
 		err = rows.Scan(
 			&email.ID,
+			&email.UserID,
 			&email.Email,
 		)
 

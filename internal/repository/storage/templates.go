@@ -4,14 +4,19 @@ const (
 	GetUserAllInfoTemplate = `SELECT u.id, u.first_name, u.last_name, u.gender, u.age, u.nationality, 
     	ARRAY_AGG(e.email) FILTER (WHERE e.email IS NOT NULL) AS emails 
 	FROM Users u LEFT JOIN Emails e ON u.id = e.user_id 
-	WHERE u.id = $1 GROUP BY u.id;`
+	WHERE u.last_name = $1 GROUP BY u.id;`
+
+	//GetUserAllInfoBySecondNameTemplate = `SELECT u.id, u.first_name, u.last_name, u.gender, u.age, u.nationality,
+	//	ARRAY_AGG(e.email) FILTER (WHERE e.email IS NOT NULL) AS emails
+	//FROM Users u LEFT JOIN Emails e ON u.id = e.user_id
+	//WHERE u.last_name = $1 GROUP BY u.last_name;`
 
 	GetAllUsersTemplate = `SELECT u.id, u.first_name, u.last_name, u.gender, u.age, u.nationality, 
     	ARRAY_AGG(e.email) FILTER (WHERE e.email IS NOT NULL) AS emails 
 	FROM Users u LEFT JOIN Emails e ON u.id = e.user_id
 	GROUP BY u.id`
 
-	GetAllUserEmailsTemplate = `SELECT id, email FROM Emails WHERE user_id = $1;`
+	GetAllUserEmailsTemplate = `SELECT id, user_id, email FROM Emails WHERE user_id = $1;`
 
 	GetUserFriendsTemplate = `SELECT 
     	u.id AS friend_id,

@@ -25,34 +25,24 @@ func New(uc *usecase.UseCase, log *logrus.Logger) *Server {
 	}
 }
 
-// GetUserInfoByID handler of GET request for retrieving UserInfo by id
+// GetUserInfoBySecondName handler of GET request for retrieving UserInfo by user`s second name
 // @Summary Get user details
-// @Description Get user information with emails by id
+// @Description Get user information with emails by second name
 // @Tags people
 //
 // @Produce json
 // @Param id path int true "User ID"
 //
-// @Success 200 {object} types.UserInfo
-// @Failure 400 {object} types.ErrorResponse
+// @Success 200 {object} []types.UserInfo
 // @Failure 404 {object} types.ErrorResponse
 // @Failure 500 {object} types.ErrorResponse
 // @Router /api/v1/users/:id [get]
-func (s *Server) GetUserInfoByID(c *gin.Context) {
-	id := c.Param("id")
-
-	idUint, err := strconv.ParseUint(id, 10, 64)
-	if err != nil {
-		s.log.WithError(err).Errorln("Error getting user id")
-		c.JSON(http.StatusBadRequest, types.ErrorResponse{
-			Error:   "Bad Request",
-			Message: err.Error(),
-		})
-		return
-	}
+func (s *Server) GetUserInfoBySecondName(c *gin.Context) {
+	name := c.Param("id")
 
 	ctx := context.Background()
-	user, err := s.usecase.GetUserInfoByID(ctx, idUint)
+
+	users, err := s.usecase.GetUserInfoBySecondName(ctx, name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			s.log.WithError(err).Errorln("user not found")
@@ -70,7 +60,7 @@ func (s *Server) GetUserInfoByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": user})
+	c.JSON(http.StatusOK, gin.H{"user": users})
 	return
 }
 
@@ -109,7 +99,7 @@ func (s *Server) GetAllUsersInfo(c *gin.Context) {
 	return
 }
 
-// GetAllUserEmails handler of GET request for retrieving all user`s emails
+// GetUserEmails handler of GET request for retrieving all user`s emails
 // @Summary Get all user`s emails
 // @Description Get all user`s emails
 // @Tags people
@@ -122,7 +112,7 @@ func (s *Server) GetAllUsersInfo(c *gin.Context) {
 // @Failure 404 {object} types.ErrorResponse
 // @Failure 500 {object} types.ErrorResponse
 // @Router /api/v1/users/:id/emails [get]
-func (s *Server) GetAllUserEmails(c *gin.Context) {
+func (s *Server) GetUserEmails(c *gin.Context) {
 	id := c.Param("id")
 
 	idUint, err := strconv.ParseUint(id, 10, 64)
@@ -137,7 +127,7 @@ func (s *Server) GetAllUserEmails(c *gin.Context) {
 	}
 
 	ctx := context.Background()
-	emails, err := s.usecase.GetAllUserEmails(ctx, idUint)
+	emails, err := s.usecase.GetUserEmails(ctx, idUint)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			s.log.WithError(err).Errorln("User`s emails not found")
@@ -220,6 +210,7 @@ func (s *Server) GetUserFriends(c *gin.Context) {
 //
 // @Success 200 {object} uint64
 // @Failure 400 {object} types.ErrorResponse
+// @Failure 404 {object} types.ErrorResponse
 // @Failure 500 {object} types.ErrorResponse
 // @Router /api/v1/users [post]
 func (s *Server) CreateUser(c *gin.Context) {
@@ -248,6 +239,14 @@ func (s *Server) CreateUser(c *gin.Context) {
 	ctx := context.Background()
 	id, err := s.usecase.CreateUser(ctx, name)
 	if err != nil {
+		if errors.Is(err, types.ErrNotFound) {
+			s.log.WithError(err).Errorln("Nationality not found")
+			c.JSON(http.StatusNotFound, types.ErrorResponse{
+				Error:   "Not found Error",
+				Message: err.Error(),
+			})
+			return
+		}
 		s.log.WithError(err).Errorln("Error adding user")
 		c.JSON(http.StatusInternalServerError, types.ErrorResponse{
 			Error:   "Server Error",

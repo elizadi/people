@@ -24,15 +24,15 @@ func New(storage *storage.Storage, enrichment *enrichment.Enrichment, log *logru
 	}
 }
 
-func (s *UseCase) GetUserInfoByID(ctx context.Context, id uint64) (types.UserInfo, error) {
-	user, err := s.storage.GetUserInfoByID(ctx, id)
+func (s *UseCase) GetUserInfoBySecondName(ctx context.Context, name string) ([]types.UserInfo, error) {
+	user, err := s.storage.GetUserInfoBySecondName(ctx, name)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			s.log.WithError(err).Errorln("Not found user info")
-			return types.UserInfo{}, types.ErrNotFound
+			return []types.UserInfo{}, types.ErrNotFound
 		}
 		s.log.WithError(err).Errorln("Can`t get user info")
-		return types.UserInfo{}, err
+		return []types.UserInfo{}, err
 	}
 
 	return user, nil
@@ -52,8 +52,8 @@ func (s *UseCase) GetAllUsersInfo(ctx context.Context) ([]types.UserInfo, error)
 	return users, nil
 }
 
-func (s *UseCase) GetAllUserEmails(ctx context.Context, id uint64) ([]types.Email, error) {
-	emails, err := s.storage.GetAllUserEmails(ctx, id)
+func (s *UseCase) GetUserEmails(ctx context.Context, id uint64) ([]types.Email, error) {
+	emails, err := s.storage.GetUserEmails(ctx, id)
 	if err != nil {
 		if errors.Is(err, types.ErrNotFound) {
 			s.log.WithError(err).Errorln("Not found user`s emails")
